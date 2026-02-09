@@ -1,0 +1,11 @@
+snpguest report report.bin request-file.txt --random
+snpguest certificates PEM ./
+curl --proto =https --tlsv1.2 -sSf https://kdsintf.amd.com/vlek/v1/Milan/cert_chain -o ./cert_chain.pem
+openssl verify --CAfile ./cert_chain.pem vlek.pem
+/root/vlek.pem: OK
+snpguest verify attestation ./ report.bin
+Reported TCB Boot Loader from certificate matches the attestation report.
+Reported TCB TEE from certificate matches the attestation report.
+Reported TCB SNP from certificate matches the attestation report.
+Reported TCB Microcode from certificate matches the attestation report.
+VEK signed the Attestation Report!
