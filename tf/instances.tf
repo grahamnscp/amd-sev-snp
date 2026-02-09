@@ -1,7 +1,5 @@
 # Instances:
 
-# Rancher Cluster Instances:
-#
 resource "aws_instance" "sev-snp" {
 
   instance_type = "${var.aws_instance_type}"
