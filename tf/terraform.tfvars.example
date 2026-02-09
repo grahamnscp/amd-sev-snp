@@ -4,7 +4,7 @@ aws_profile = "default"
 # tags to use on the AWS resources (default_tags)
 aws_tags = {
      Owner          = "me"
-     expirationDate = "2024-10-31"
+     expirationDate = "2026-04-30"
      Purpose        = "DevTest"
 }
 
@@ -21,12 +21,17 @@ route53_subdomain = "demo"
 #  General purpose: m6a.large | m6a.xlarge | m6a.2xlarge | m6a.4xlarge | m6a.8xlarge
 #  Compute optimized: c6a.large | c6a.xlarge | c6a.2xlarge | c6a.4xlarge | c6a.8xlarge | c6a.12xlarge | c6a.16xlarge
 #  Memory optimized: r6a.large | r6a.xlarge | r6a.2xlarge | r6a.4xlarge
-aws_instance_type = "m6a.xlarge"
+#aws_instance_type = "m6a.xlarge"
+aws_instance_type = "m6a.large"
 
 # AWS EC2 ami
-# https://pint.suse.com/?resource=images&search=sles-15-sp6&state=active&csp=amazon&region=us-east-2
+# https://pint.suse.com/?resource=images&search=sles-15-sp7&state=active&csp=amazon&region=us-east-2
+# sles sp4 ami (amazon/suse-sles-15-sp4-v20221216-hvm-ssd-x86_64)
+#aws_ami = "ami-0c544bda9765444c2"
 # sles sp6 ami (amazon/suse-sles-15-sp6-v20240808-hvm-ssd-x86_64)
-aws_ami = "ami-0371c70ae504994fd"
+#aws_ami = "ami-0371c70ae504994fd"
+# sles sp7 ami (amazon/suse-sles-15-sp7-v20251022-hvm-ssd-x86_64)
+aws_ami = "ami-097977f3e04e0f739"
 
 # Number of instances
 node_count = "1"
