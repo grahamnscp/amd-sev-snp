@@ -1,0 +1,46 @@
+#!/bin/bash
+
+source ./params.sh
+source ./utils/utils.sh
+source ./utils/load-tf-output.sh
+
+NODENAME=${NODE_NAME[1]}
+NODEIP=${NODE_PUBLIC_IP[1]}
+
+LogStarted "Checking CC Attestation ($NODENAME) .."
+
+# ref: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/snp-attestation.html"
+
+Log "Installing snpguest package .."
+ssh $SSH_OPTS ${SSH_USERNAME}@${NODEIP} "echo sudo zypper in -y snpguest >> | tee -a attestation-test.txt"
+ssh $SSH_OPTS ${SSH_USERNAME}@${NODEIP} "sudo zypper in -y snpguest"
+
+
+Log "Generate request for the attestation report.."
+ssh $SSH_OPTS ${SSH_USERNAME}@${NODEIP} "echo snpguest report report.bin request-file.txt --random | tee -a attestation-test.txt"
+ssh $SSH_OPTS ${SSH_USERNAME}@${NODEIP} "sudo snpguest report /root/report.bin request-file.txt --random | tee -a attestation-test.txt"
+
+Log "Request the certificate from host memory - vlek.pem .."
+ssh $SSH_OPTS ${SSH_USERNAME}@${NODEIP} "echo snpguest certificates PEM ./ | tee -a attestation-test.txt"
+ssh $SSH_OPTS ${SSH_USERNAME}@${NODEIP} "sudo snpguest certificates PEM /root/ | tee -a attestation-test.txt"
+
+Log "Download the VLEK root of trust certificates from the official AMD website - cert_chain.pem .."
+ssh $SSH_OPTS ${SSH_USERNAME}@${NODEIP} "echo curl --proto '=https' --tlsv1.2 -sSf https://kdsintf.amd.com/vlek/v1/Milan/cert_chain -o ./cert_chain.pem | tee -a attestation-test.txt"
+ssh $SSH_OPTS ${SSH_USERNAME}@${NODEIP} "sudo curl --proto '=https' --tlsv1.2 -sSf https://kdsintf.amd.com/vlek/v1/Milan/cert_chain -o /root/cert_chain.pem | tee -a attestation-test.txt"
+
+
+Log "Validate that host memory VLEK certificate is signed by the AMD trust root certificate .."
+ssh $SSH_OPTS ${SSH_USERNAME}@${NODEIP} "echo openssl verify --CAfile ./cert_chain.pem vlek.pem | tee -a attestation-test.txt"
+ssh $SSH_OPTS ${SSH_USERNAME}@${NODEIP} "sudo openssl verify --CAfile /root/cert_chain.pem /root/vlek.pem | tee -a attestation-test.txt"
+
+Log "Validate that the attestation report is signed by the VLEK certificate .."
+ssh $SSH_OPTS ${SSH_USERNAME}@${NODEIP} "echo  snpguest verify attestation ./ report.bin | tee -a attestation-test.txt"
+ssh $SSH_OPTS ${SSH_USERNAME}@${NODEIP} "sudo snpguest verify attestation /root/ /root/report.bin | tee -a attestation-test.txt"
+
+
+Log "Copying attestation output file locally.."
+scp $SSH_OPTS ${SSH_USERNAME}@${NODEIP}:~/attestation-test.txt ./local/
+
+LogElapsedDuration
+LogCompleted "Done."
+

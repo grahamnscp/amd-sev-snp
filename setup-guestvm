@@ -1,0 +1,52 @@
+#!/bin/bash -x
+
+source ./params.sh
+source ./utils/utils.sh
+source ./utils/load-tf-output.sh
+
+NODENAME=${NODE_NAME[1]}
+NODEIP=${NODE_PUBLIC_IP[1]}
+
+LogStarted "Configuring remote instance ($NODENAME).."
+
+# Local directory for dynamic config
+mkdir -p ./local
+
+Log "Generating an ssh key on instance.."
+ssh $SSH_OPTS ${SSH_USERNAME}@${NODEIP} "sudo bash -c 'echo | ssh-keygen -t rsa -P \"\" '"
+SSHKEY=`ssh $SSH_OPTS ${SSH_USERNAME}@${NODEIP} "sudo cat /root/.ssh/id_rsa.pub"`
+
+Log "Start remote libvirtd and enable default network.."
+ssh $SSH_OPTS ${SSH_USERNAME}@${NODEIP} "sudo systemctl start libvirtd"
+ssh $SSH_OPTS ${SSH_USERNAME}@${NODEIP} "sudo virsh net-start default"
+ssh $SSH_OPTS ${SSH_USERNAME}@${NODEIP} "sudo virsh net-autostart default"
+
+Log "Upload cloud image to instance.."
+scp $SSH_OPTS ~/local/${IMGFILE} ${SSH_USERNAME}@${NODEIP}:~/
+ssh $SSH_OPTS ${SSH_USERNAME}@${NODEIP} "sudo mv ./${IMGFILE} /var/lib/libvirt/images/"
+
+LogElapsedDuration
+
+Log "Generating virt-install script from template.."
+SEDBAK=""
+UNAME_OUT="$(uname -s)"
+case "${UNAME_OUT}" in
+    Darwin*)    SEDBAK=".bak";;
+esac
+cp templates/virt-install-sles15.template local/virt-install-sles15
+sed -i $SEDBAK "s/##IMAGE_FILE_NAME##/$IMGFILE/" local/virt-install-sles15
+
+Log "Copy virt-install script to instance.."
+scp $SSH_OPTS ./local/virt-install-sles15 ${SSH_USERNAME}@${NODEIP}:~/
+ssh $SSH_OPTS ${SSH_USERNAME}@${NODEIP} "sudo mv ./virt-install-sles15 /root"
+ssh $SSH_OPTS ${SSH_USERNAME}@${NODEIP} "sudo chmod +x /root/virt-install-sles15"
+
+LogElapsedDuration
+
+Log "Creating VM instance on instance.."
+echo ssh $SSH_OPTS -o ConnectTimeout=300 ${SSH_USERNAME}@${NODEIP} "sudo /root/virt-install-sles15 sles15"
+#echo ssh $SSH_OPTS -o ConnectTimeout=300 ${SSH_USERNAME}@${NODEIP} "sudo bash -c '/root/virt-install-sles15 sles15'"
+
+LogElapsedDuration
+LogCompleted "Done."
+

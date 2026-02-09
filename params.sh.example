@@ -1,0 +1,12 @@
+# Params.sh
+
+# params used in deployment scripts
+
+# aws access
+SSH_USERNAME=ec2-user
+SSH_KEY=/Users/myuser/.ssh/awsmykeypair
+SSH_OPTS="-o StrictHostKeyChecking=no -i $SSH_KEY "
+
+# libvirt image name
+IMGFILE=SLES15-SP7-Minimal-VM.x86_64-Cloud-GM.qcow2
+

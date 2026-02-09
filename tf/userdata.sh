@@ -15,14 +15,14 @@ sudo setenforce 0
 # packages
 sudo zypper refresh
 sudo zypper install -y bind-utils mlocate yast2-vm
-sudo zypper install -y -t pattern kvm_server
-sudo zypper install -y libvirt
+#sudo zypper install -y -t pattern kvm_server
+#sudo zypper install -y libvirt virt-install mkisofs
 sudo zypper up -y
 
 systemctl enable libvirtd
 
 echo -n "Active Encryption Features:"
-sudo dmesg | grep -i sev-snp
+sudo dmesg | grep -i sev | tee -a /etc/motd
 
 echo -n "[cloud-init] reboot now.."
 sudo systemctl reboot
